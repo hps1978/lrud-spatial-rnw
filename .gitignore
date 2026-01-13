@@ -1,6 +1,7 @@
 node_modules/
-*.min.js
-*.map
+# temporary change to allow installing from fork
+# *.min.js
+# *.map
 credentials.json
 
 # Logs
