@@ -146,13 +146,14 @@ const matches = (element, selectors) => {
 // Enable these later when we refactor for performance optimizations
 // const isContainer = (node) => node?.classList?.contains('lrud-container');
 
-// const isContainerWithAutofocus = (node) =>
-//   node?.classList?.contains('lrud-container') &&
+// const isContainerWithAutofocus = (node) => 
+//   node?.classList?.contains('lrud-container') && 
 //   node?.getAttribute(DATA_AUTOFOCUS_ATTRIBUTE) === 'true';
 
 // const isContainerWithDestinations = (node) =>
 //   node?.classList?.contains('lrud-container') &&
 //   node?.getAttribute(DESTINATIONS_ATTRIBUTE)?.length > 0;
+
 
 /**
  * Convert a NodeList to a regular Array
@@ -216,7 +217,12 @@ const getFocusables = (elem, scope) => {
       if (hasAutoFocus || hasDestinations) {
         // add all children to ignore set irrespective of depth and focusability
         const allChildren = toArray(node.querySelectorAll('*'));
-        allChildren.forEach(child => childrenToIgnore.add(child));
+        allChildren.forEach(child => {
+          // TESTING: Do not ignore other child containers
+          if (!matches(child, containerSelector)) {
+            childrenToIgnore.add(child);
+          }
+        });
       }
     }
   });
@@ -445,20 +451,72 @@ const isValidCandidate = (entryRect, exitDir, exitPoint, entryWeighting) => {
 const sortValidCandidates = (candidates, elem, exitDir) => {
   const exitRect = elem?.getBoundingClientRect() || { left: 0, right: 0, top: 0, bottom: 0, width: 0, height: 0 }; // For default case
   const exitPoint = getMidpointForEdge(exitRect, exitDir);
-  return candidates.filter(candidate => {
-    // Filter out candidates that are in the opposite direction or have no dimensions
-    const entryRect = candidate.getBoundingClientRect();
-    const allowedOverlap = parseFloat(candidate.getAttribute('data-lrud-overlap-threshold'));
-    return isValidCandidate(entryRect, exitDir, exitPoint, allowedOverlap);
-  }).map(candidate => {
-    const entryRect = candidate.getBoundingClientRect();
-    const nearestPoint = getNearestPoint(exitPoint, exitDir, entryRect);
-    const distance = getDistanceBetweenPoints(exitPoint, nearestPoint);
-    return {
-      candidate,
-      distance
-    };
-  }).sort((a, b) => a.distance - b.distance).map(({ candidate }) => candidate);
+  const EPSILON = 1e-6;
+
+  return candidates
+    .filter(candidate => {
+      // Filter out candidates that are in the opposite direction or have no dimensions
+      const entryRect = candidate.getBoundingClientRect();
+      const allowedOverlap = parseFloat(candidate.getAttribute('data-lrud-overlap-threshold'));
+      return isValidCandidate(entryRect, exitDir, exitPoint, allowedOverlap);
+    })
+    .map((candidate, idx) => {
+      const entryRect = candidate.getBoundingClientRect();
+      const nearestPoint = getNearestPoint(exitPoint, exitDir, entryRect);
+      const distance = getDistanceBetweenPoints(exitPoint, nearestPoint);
+
+      // Tie-breaker: prefer candidates more aligned on the primary axis (perpendicular to movement)
+      const primaryAxisDelta = (exitDir === 'left' || exitDir === 'right')
+        ? Math.abs(exitPoint.y - nearestPoint.y)
+        : Math.abs(exitPoint.x - nearestPoint.x);
+
+      // Secondary tie-breaker: favour candidates closer along the movement axis, then DOM order
+      const secondaryAxisDelta = (exitDir === 'left' || exitDir === 'right')
+        ? Math.abs(exitPoint.x - nearestPoint.x)
+        : Math.abs(exitPoint.y - nearestPoint.y);
+
+      return {
+        candidate,
+        distance,
+        primaryAxisDelta,
+        secondaryAxisDelta,
+        entryRect,
+        idx
+      };
+    })
+    .sort((a, b) => {
+      const distanceDelta = a.distance - b.distance;
+      if (Math.abs(distanceDelta) > EPSILON) return distanceDelta;
+
+      const primaryDelta = a.primaryAxisDelta - b.primaryAxisDelta;
+      if (Math.abs(primaryDelta) > EPSILON) return primaryDelta;
+
+      const secondaryDelta = a.secondaryAxisDelta - b.secondaryAxisDelta;
+      if (Math.abs(secondaryDelta) > EPSILON) return secondaryDelta;
+
+      // Spatial tie-breaker: prefer based on direction
+      // For up/left: closest (top, left) position to exitPoint
+      // For down/right: closest (top, right) position to exitPoint
+      if (exitDir === 'up' || exitDir === 'left') {
+        const aRect = a.entryRect;
+        const bRect = b.entryRect;
+        const aCorner = { x: aRect.left, y: aRect.top };
+        const bCorner = { x: bRect.left, y: bRect.top };
+        const aCornerDist = getDistanceBetweenPoints(exitPoint, aCorner);
+        const bCornerDist = getDistanceBetweenPoints(exitPoint, bCorner);
+        return aCornerDist - bCornerDist;
+      } else if (exitDir === 'down' || exitDir === 'right') {
+        const aRect = a.entryRect;
+        const bRect = b.entryRect;
+        const aCorner = { x: aRect.right, y: aRect.top };
+        const bCorner = { x: bRect.right, y: bRect.top };
+        const aCornerDist = getDistanceBetweenPoints(exitPoint, aCorner);
+        const bCornerDist = getDistanceBetweenPoints(exitPoint, bCorner);
+        return aCornerDist - bCornerDist;
+      }
+      return a.idx - b.idx;
+    })
+    .map(({ candidate }) => candidate);
 };
 
 /**
