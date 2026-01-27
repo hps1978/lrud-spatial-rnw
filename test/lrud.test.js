@@ -168,6 +168,28 @@ describe('LRUD Spatial - New Implementation', () => {
     });
   });
 
+  describe('Destinations-Only Container', () => {
+    it('should use destinations even without autofocus, but NOT set data-focus', async () => {
+      await page.goto(`${testPath}/destinations-only-container.html`);
+      await page.waitForFunction('document.activeElement');
+
+      // Navigate down to container with destinations
+      await page.keyboard.press('ArrowDown');
+
+      let result = await page.evaluate(() => document.activeElement.id);
+      // Should navigate to the destination (btn-3), not first button (btn-1)
+      expect(result).toEqual('btn-3');
+
+      const dataFocus = await page.evaluate(() =>
+        document.getElementById('dest-only-container').getAttribute('data-focus')
+      );
+
+      // Container has destinations but data-autofocus="false", so data-focus should NOT be set
+      // (focus updates are only tracked for autofocus containers)
+      expect(dataFocus).toBeNull();
+    });
+  });
+
   describe('Block Exit Container', () => {
     it('should block exit in up direction', async () => {
       await page.goto(`${testPath}/block-exit-container.html`);
