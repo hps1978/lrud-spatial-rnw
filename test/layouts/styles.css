@@ -11,11 +11,47 @@ body {
     overscroll-behavior: none;
 }
 
+.container {
+    padding: 20px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, 200px);
+    gap: 20px;
+}
+
+button {
+    width: 200px;
+    height: 60px;
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #8caabe;
+    border: 2px solid #333;
+    border-radius: 4px;
+    margin: 10px;
+}
+
+button:focus {
+    outline: 4px solid #F00;
+    background-color: #6a8a9e;
+}
+
+button:disabled {
+    background: repeating-linear-gradient(135deg, #d3d3d355, #d3d3d355 10px, #c08181bb 10px, #c08181bb 20px);
+    font-style: italic;
+    cursor: not-allowed;
+}
+
 section, .lrud-container {
     width: fit-content;
     overflow:hidden;
-    margin-bottom:25px;
+    margin: 20px 0;
+    padding: 15px;
     background-color: #5b7084;
+    border: 3px solid #333;
+    border-radius: 8px;
 }
 
 section > section, .lrud-container > .lrud-container {
@@ -121,6 +157,15 @@ section.wide {
 }
 [data-block-exit*="down"] {
     border-bottom: 8px dashed black;
+}
+
+[data-autofocus="true"] {
+    border: 3px solid #4CAF50;
+    background-color: #6b8094;
+}
+
+[data-destinations] {
+    border-style: dotted;
 }
 
 [data-lrud-prioritise-children="false"] {

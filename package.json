@@ -9,6 +9,9 @@
   },
   "scripts": {
     "test": "jest",
+    "test:layouts": "jest test/lrud.test.js",
+    "test:core": "jest test/lrud-directional.test.js",
+    "test:all": "jest test/lrud.test.js test/lrud-directional.test.js",
     "build": "rm -f lib/lrud.min.js && babel lib --source-maps true --out-file lib/lrud.min.js",
     "server": "node ./test/server.js",
     "lint": "eslint .",

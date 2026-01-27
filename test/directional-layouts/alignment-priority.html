@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Alignment Priority</title>
+  <link rel="stylesheet" href="../layouts/styles.css">
+  <script type="module" src="../handleKeyDown.js"></script>
+</head>
+<body>
+  <div class="container">
+    <!-- Center button -->
+    <button tabindex="0" id="btn-center" style="position: absolute; left: 20%; top: 50%; transform: translate(-50%, -50%);">Center</button>
+    
+    <!-- Right candidates: perfectly aligned has priority -->
+    <!-- Perfectly aligned (same Y) -->
+    <button tabindex="0" id="btn-perfect-align" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);">Perfect Align</button>
+    
+    <!-- Slightly off-axis but closer -->
+    <button tabindex="0" id="btn-slightly-off" style="position: absolute; left: 45%; top: 52%;">Slightly Off</button>
+    
+    <!-- Significantly off-axis but farther -->
+    <button tabindex="0" id="btn-far-off-axis" style="position: absolute; left: 60%; top: 35%;">Far Off</button>
+    
+    <!-- Very close but off-axis -->
+    <button tabindex="0" id="btn-close-off-axis" style="position: absolute; left: 22%; top: 48%;">Close Off-Axis</button>
+  </div>
+</body>
+</html>

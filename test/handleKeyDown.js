@@ -1,23 +1,39 @@
-import { getNextFocus, setConfig } from '../../lib/lrud.js';
+import { getNextFocus, setConfig, updateAncestorsAutoFocus } from '../../lib/lrud.js';
 
-let scope = null;
+let scope = window.document.body;
 
 /**
  * setup element id's when requeted by lrud
  */
 const ID_LIMIT = 100000; // big enough to wrap around!
-let id = 0;
-function setupId(node) {
-  let newId = null;
-  if (node) {
+let nextId = 0;
+function setupNodeId(node) {
+  let id = node.id?.length > 0 ? node.id : null;
+  if (!id) {
     // Use a simple incremented number as id
-    newId = `lrud-${id > ID_LIMIT ? 0 : ++id}`;
-    node.id = newId;
-
-    return newId;
+    id = `lrud-${nextId > ID_LIMIT ? 1 : ++nextId}`;
+    node.id = id;
   }
+  return id;
+}
 
-  return newId;
+let currentFocus = null;
+/**
+ * Trigger focus on the element and update ancestors' autoFocus attributes
+ *
+ * @param {Object} nextFocus The next focus object
+ * @returns {boolean} true if focus was set, false otherwise
+ */
+function triggerFocus(nextFocus) {
+  if (nextFocus && nextFocus.elem) {
+    currentFocus = nextFocus;
+    // set id first
+    setupNodeId(nextFocus.elem);
+    updateAncestorsAutoFocus(nextFocus.elem, scope);
+    nextFocus.elem.focus();
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -28,10 +44,10 @@ function setupId(node) {
 const handleKeyDown = (event) => {
   if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) {
     event.preventDefault();
-    const nextFocus = getNextFocus(event.target, event.keyCode, scope);
+    const nextFocus = getNextFocus(currentFocus?.elem, event.keyCode, scope);
 
-    if (nextFocus) {
-      nextFocus.focus();
+    if (nextFocus?.elem) {
+      triggerFocus(nextFocus);
     }
   }
 };
@@ -44,10 +60,24 @@ window.addEventListener('click', (e) => {
   }
 });
 
+const keyMap = {
+  'ArrowLeft': 'left',
+  'ArrowRight': 'right',
+  'ArrowUp': 'up',
+  'ArrowDown': 'down'
+};
+
 // Configure LRUD
 setConfig({
-  createMissingId: setupId
+  key: keyMap
 });
 
 window.addEventListener('keydown', handleKeyDown);
-getNextFocus().focus();
+
+// Set initial focus when page loads
+window.addEventListener('DOMContentLoaded', () => {
+  const initialFocus = getNextFocus(null, null, scope);
+  if (initialFocus?.elem) {
+    triggerFocus(initialFocus);
+  }
+});
