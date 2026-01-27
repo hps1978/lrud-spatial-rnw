@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Ignore Elements</title>
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="../handleKeyDown.js"></script>
+</head>
+<body>
+  <div class="container">
+    <button tabindex="0" id="btn-1">Button 1</button>
+    <button tabindex="0" class="lrud-ignore" id="btn-ignored">Ignored Button</button>
+    <button tabindex="0" id="btn-2">Button 2</button>
+    <button tabindex="0" disabled id="btn-disabled">Disabled Button</button>
+    <button tabindex="0" id="btn-3">Button 3</button>
+    
+    <div class="lrud-ignore">
+      <button tabindex="0" id="btn-in-ignored">Button in Ignored Container</button>
+    </div>
+    
+    <button tabindex="0" id="btn-4">Button 4</button>
+  </div>
+</body>
+</html>

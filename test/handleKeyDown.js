@@ -73,3 +73,11 @@ setConfig({
 });
 
 window.addEventListener('keydown', handleKeyDown);
+
+// Set initial focus when page loads
+window.addEventListener('DOMContentLoaded', () => {
+  const initialFocus = getNextFocus(null, null, scope);
+  if (initialFocus?.elem) {
+    triggerFocus(initialFocus);
+  }
+});
