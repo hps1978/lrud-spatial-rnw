@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Block Exit Container (No Autofocus)</title>
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="../handleKeyDown.js"></script>
+</head>
+<body>
+  <div class="container">
+    <button tabindex="0" id="btn-top">Top Button</button>
+    
+    <div class="lrud-container" tabindex="-1" data-block-exit="up down" id="trap-container">
+      <button tabindex="0" id="btn-1">Trapped Button 1</button>
+      <button tabindex="0" id="btn-2">Trapped Button 2</button>
+      <button tabindex="0" id="btn-3">Trapped Button 3</button>
+    </div>
+    
+    <button tabindex="0" id="btn-bottom">Bottom Button</button>
+    <button tabindex="0" id="btn-left" style="position: absolute; left: 0; top: 50%;">Left Button</button>
+    <button tabindex="0" id="btn-right" style="position: absolute; right: 0; top: 50%;">Right Button</button>
+  </div>
+</body>
+</html>
