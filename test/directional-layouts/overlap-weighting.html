@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Overlap Weighting</title>
+  <link rel="stylesheet" href="../layouts/styles.css">
+  <script type="module" src="../handleKeyDown.js"></script>
+</head>
+<body>
+  <div class="container">
+    <!-- Center button -->
+    <button tabindex="0" id="btn-center" style="position: absolute; left: 30%; top: 50%; transform: translate(-50%, -50%);">Center</button>
+    
+    <!-- Right candidates with different overlap scenarios -->
+    <!-- No overlap threshold (default 0.3) -->
+    <button tabindex="0" id="btn-default-overlap" style="position: absolute; left: 60%; top: 50%; transform: translate(-50%, -50%);">Default Overlap</button>
+    
+    <!-- High overlap threshold (0.8) - allows more backward reach -->
+    <button tabindex="0" id="btn-high-overlap" style="position: absolute; left: 60%; top: 45%;" data-lrud-overlap-threshold="0.8">High Overlap</button>
+    
+    <!-- Low overlap threshold (0.1) - requires more forward positioning -->
+    <button tabindex="0" id="btn-low-overlap" style="position: absolute; left: 60%; top: 55%;" data-lrud-overlap-threshold="0.1">Low Overlap</button>
+    
+    <!-- Edge case: far right, high up -->
+    <button tabindex="0" id="btn-far-right" style="position: absolute; left: 80%; top: 20%;">Far Right</button>
+    
+    <!-- Edge case: far right, high down -->
+    <button tabindex="0" id="btn-far-right-down" style="position: absolute; left: 80%; top: 80%;">Far Right Down</button>
+  </div>
+</body>
+</html>

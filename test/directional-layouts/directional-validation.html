@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Directional Validation</title>
+  <link rel="stylesheet" href="../layouts/styles.css">
+  <script type="module" src="../handleKeyDown.js"></script>
+</head>
+<body>
+  <div class="container">
+    <!-- Center button -->
+    <button tabindex="0" id="btn-center" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);">Center</button>
+    
+    <!-- Right candidates (should be valid for right movement) -->
+    <button tabindex="0" id="btn-right-aligned" style="position: absolute; left: 70%; top: 50%; transform: translate(-50%, -50%);">Right Aligned</button>
+    <button tabindex="0" id="btn-right-up" style="position: absolute; left: 70%; top: 30%;">Right Up</button>
+    <button tabindex="0" id="btn-right-down" style="position: absolute; left: 70%; top: 70%;">Right Down</button>
+    
+    <!-- Left candidates (should be invalid for right movement) -->
+    <button tabindex="0" id="btn-left-aligned" style="position: absolute; left: 30%; top: 50%; transform: translate(-50%, -50%);">Left Aligned</button>
+    
+    <!-- Up candidates (should be invalid for right movement) -->
+    <button tabindex="0" id="btn-up-aligned" style="position: absolute; left: 50%; top: 30%; transform: translate(-50%, -50%);">Up Aligned</button>
+    
+    <!-- Down candidates (should be invalid for right movement) -->
+    <button tabindex="0" id="btn-down-aligned" style="position: absolute; left: 50%; top: 70%; transform: translate(-50%, -50%);">Down Aligned</button>
+  </div>
+</body>
+</html>

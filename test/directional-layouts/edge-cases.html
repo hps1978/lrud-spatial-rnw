@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Edge Cases</title>
+  <link rel="stylesheet" href="../layouts/styles.css">
+  <script type="module" src="../handleKeyDown.js"></script>
+</head>
+<body>
+  <div class="container">
+    <!-- Normal sized button -->
+    <button tabindex="0" id="btn-normal" style="position: absolute; left: 40%; top: 50%; transform: translate(-50%, -50%);">Normal</button>
+    
+    <!-- Very small button (edge case) -->
+    <button tabindex="0" id="btn-tiny" style="position: absolute; left: 60%; top: 50%; transform: translate(-50%, -50%); width: 20px; height: 20px; font-size: 8px;">T</button>
+    
+    <!-- Very large button (edge case) -->
+    <button tabindex="0" id="btn-huge" style="position: absolute; left: 70%; top: 60%; width: 150px; height: 80px;">Huge Button</button>
+    
+    <!-- Button at exact edge (boundary) -->
+    <button tabindex="0" id="btn-exact-edge" style="position: absolute; left: 50%; top: 50.01%; transform: translate(-50%, -50%);">Exact Edge</button>
+    
+    <!-- Button slightly behind (just outside valid area) -->
+    <button tabindex="0" id="btn-behind" style="position: absolute; left: 35%; top: 50%; transform: translate(-50%, -50%);">Behind</button>
+    
+    <!-- Button with zero dimensions (invalid candidate) -->
+    <button tabindex="0" id="btn-zero-dim" style="position: absolute; left: 40%; top: 70%; width: 0; height: 0; padding: 0; border: 0; margin: 0; overflow: hidden;"></button>
+  </div>
+</body>
+</html>

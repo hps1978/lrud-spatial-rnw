@@ -14,8 +14,15 @@ let server = http.createServer((req, res) => {
     let data;
     if (req.url === '/') {
       const layoutDirectory = './test/layouts';
+      const directionalLayoutDirectory = './test/directional-layouts';
+
       const layouts = fs.readdirSync(path.join(__dirname, '..', layoutDirectory));
-      data = `<ul>${layouts.filter(l => l.endsWith('.html')).map(l => `<li><a href="${layoutDirectory}/${l}">${l}</a></li>`).join('')}</ul>`;
+      const directionalLayouts = fs.readdirSync(path.join(__dirname, '..', directionalLayoutDirectory));
+
+      const layoutList = `<ul>${layouts.filter(l => l.endsWith('.html')).map(l => `<li><a href="${layoutDirectory}/${l}">${l}</a></li>`).join('')}</ul>`;
+      const directionalList = `<ul>${directionalLayouts.filter(l => l.endsWith('.html')).map(l => `<li><a href="${directionalLayoutDirectory}/${l}">${l}</a></li>`).join('')}</ul>`;
+
+      data = `<h2>Layout Tests</h2>${layoutList}<h2>Core Directional Navigation Tests</h2>${directionalList}`;
     } else {
       data = fs.readFileSync(path.join(__dirname, '..', req.url));
     }
