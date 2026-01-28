@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Destinations Fallback with Autofocus</title>
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="../handleKeyDown.js"></script>
+</head>
+<body>
+  <div class="container">
+    <button tabindex="0" id="btn-outside">Outside Button</button>
+    
+    <!-- Container with destinations and autofocus - will use autofocus fallback when destination is removed -->
+    <div class="lrud-container" tabindex="-1" data-destinations="btn-removed" data-autofocus="true" id="dest-container-with-auto">
+      <button tabindex="0" id="btn-inside-1">Inside Button 1</button>
+      <button tabindex="0" id="btn-inside-2">Inside Button 2</button>
+      <button tabindex="0" id="btn-inside-3">Inside Button 3</button>
+    </div>
+    
+    <button tabindex="0" id="btn-after">After Button</button>
+  </div>
+</body>
+</html>

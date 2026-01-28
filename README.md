@@ -2,7 +2,84 @@
   <img src="https://github.com/bbc/lrud-spatial/blob/master/.github/lrud.svg?raw=true" alt="LRUD spatial"/>
 </p>
 
-Move focus around a HTML document using Left, Right, Up, Down keys.
+# LRUD Spatial - React Native Web TV Edition
+
+**Spatial Navigation for React Native Web TV Platforms**
+
+This is a modified version of [@bbc/lrud-spatial](https://github.com/bbc/lrud-spatial) adapted to provide alignment-prioritized spatial navigation tailored for React Native Web TV. It aspires to implements the core principles of Android TV's directional navigation system and the requirements of TVFocusGuideView component in React Native TVOS.
+
+## Overview
+
+This library works in conjunction with [React Native Web TV](https://github.com/hps1978/react-native-web-tv) to provide seamless spatial navigation. It uses directional keys (Left, Right, Up, Down) to navigate focus around HTML documents, with a focus on alignment-first candidate selection that aspires to mirror Android TV behavior.
+
+**Status**: Both this library and React Native Web TV are experimental implementations designed to support **Spatial Navigation out of the box** in React Native Web TV applications.
+
+### Key Enhancements from BBC LRUD
+
+- **Alignment Prioritization**: Candidates aligned on the movement axis are prioritized before distant candidates
+- **Performance Optimizations**: Replaced `Element.matches()` calls with direct DOM API methods in hot paths
+- **Focus Memory**: Containers automatically track the last focused child via `data-focus` attribute required for TVFocusGuideView
+- **Destination Fallback**: Supports dynamic destination overrides with graceful fallback to directional navigation (destinations feature of TVFocusGuideView)
+- **Block Exit Support**: Prevent focus from leaving containers in specified directions (focus trapping of React Native TVOS)
+- **Autofocus Containers**: Containers can automatically determine focus based on user preference and focus memory (autoFocus feature of TVFocusGuideView)
+
+## React Native Web TV Integration
+
+This library is designed to work seamlessly with React Native Web TV's `TVFocusGuideView` component. The following attributes map React Native Web TV props to LRUD spatial navigation:
+
+### TVFocusGuideView Property Mapping
+
+| React Native Web TV Prop | HTML Attribute | Purpose |
+|--------------------------|----------------|---------|
+| `tvFocusable={true}` or `container={true}` | `.lrud-container` | Marks element as a spatial navigation container with `tabindex="-1"` |
+| `focusable={false}` | `.lrud-ignore` | Prevents element and its children from participating in spatial navigation |
+| `autoFocus={true}` | `data-autofocus="true"` | Enables focus memory via `data-focus` attribute; tracks last focused child |
+| `destinations={component1Ref, component2Ref]}` | `data-destinations="id1 id2"` | Override focus to specific destinations (space-separated IDs) |
+| `trapFocusUp={true}` | `data-block-exit="up"` | Block focus from exiting container upward |
+| `trapFocusDown={true}` | `data-block-exit="down"` | Block focus from exiting container downward |
+| `trapFocusLeft={true}` | `data-block-exit="left"` | Block focus from exiting container leftward |
+| `trapFocusRight={true}` | `data-block-exit="right"` | Block focus from exiting container rightward |
+
+> **Note**: Multiple block-exit directions can be combined as a space-separated list: `data-block-exit="up down"`
+
+### Focus Resolution Rules
+
+#### Initial Focus (First Time in Container)
+
+When focus first enters a container with `data-autofocus="true"`, the focus resolution follows this priority:
+
+1. **Destinations Override** (Highest Priority)
+   - If `data-destinations` attribute exists with valid element IDs, focus the first valid element
+   - Falls back to directional navigation if destination elements are removed from DOM
+
+2. **Focus Memory** (Second Priority)
+   - If `data-focus` attribute contains a valid element ID, focus that previously-focused child
+   - Useful for maintaining UI state across container exits/entries
+
+3. **Spatial Algorithm** (Default)
+   - Uses alignment-prioritized directional candidate selection to find the best initial focus candidate
+   - Prioritizes candidates aligned on the primary axis before distance
+   - Falls back to first focusable child if no better candidate is found
+
+#### Directional Navigation
+
+When navigating with arrow keys inside a container:
+
+1. **Alignment First**: All candidate elements are sorted by their alignment on the movement axis
+   - For horizontal movement (left/right): Vertical alignment matters most
+   - For vertical movement (up/down): Horizontal alignment matters most
+
+2. **Distance Second**: Among aligned candidates, choose the closest one by Euclidean distance
+
+3. **DOM Order Third**: If tied on alignment and distance, preserve DOM order
+
+#### Exit Strategy
+
+When attempting to exit a container:
+
+- If `data-block-exit` contains the exit direction, focus remains trapped in container
+- If exit is allowed, the spatial algorithm finds the best candidate outside the container
+- If the outside candidate is another container, its autofocus logic applies
 
 ## API
 
@@ -24,81 +101,265 @@ getNextFocus(<i>currentFocus</i>, <i>keyOrKeyCode</i>, <i>[scope]</i>)
 
 ### Returns
 
-An `HTMLElement` that LRUD spatial thinks you should
-navigate _to_.
+```javascript
+{
+  elem: HTMLElement | null,           // The element that should receive focus
+  parentHasAutofocus: boolean         // Whether parent container has autofocus enabled
+}
+```
 
-## Focusables
+Returns an object containing:
+- `elem`: The next focusable element, or `null` if no valid candidate exists
+- `parentHasAutofocus`: Boolean indicating if the focused element's parent container has `data-autofocus="true"` (useful for tracking focus state)
 
-LRUD spatial defines focusable elements as those which match any of the
-following CSS selectors:
+### Helper Function
 
-- `[tabindex]` (for tabindex >= 0)
+<pre>
+updateAncestorsAutoFocus(<i>elem</i>, <i>scope</i>)
+</pre>
+
+Updates the `data-focus` attribute on all ancestor containers with `data-autofocus="true"`, storing the currently focused element's ID. This maintains focus memory across container exits and re-entries.
+
+- `elem`: The currently focused element (should have a unique `id` attribute)
+- `scope`: The scope element (typically the root container or document body)
+
+### Configuration
+
+<pre>
+setConfig(<i>config</i>)
+</pre>
+
+Configures the key mapping for directional navigation. This allows customization of which key codes are mapped to navigation directions.
+
+**Parameters**:
+- `config` - An object with the following structure:
+
+```javascript
+{
+  keyMap: {
+    // Key code to direction mapping
+    37: 'left',      // ArrowLeft key code
+    39: 'right',     // ArrowRight key code
+    38: 'up',        // ArrowUp key code
+    40: 'down',      // ArrowDown key code
+    'ArrowLeft': 'left',
+    'ArrowRight': 'right',
+    'ArrowUp': 'up',
+    'ArrowDown': 'down',
+    // ... additional mappings for remote control key codes
+  }
+}
+```
+
+**Default Key Mappings**:
+The library includes built-in mappings for:
+- **Standard keyboard**: `ArrowLeft`, `ArrowRight`, `ArrowUp`, `ArrowDown`
+- **Numeric key codes**: 37 (left), 39 (right), 38 (up), 40 (down)
+- **Android TV remote**: Various proprietary key codes (214, 205, 218 for left; 213, 206, 217 for right; 211, 203, 215 for up; 212, 204, 216 for down)
+- **Legacy keyCodes**: 4, 5, 19, 20, 21, 22, 29460, 29461
+
+**Example**:
+```javascript
+import { setConfig } from '@bbc/tv-lrud-spatial';
+
+// Add custom remote control key codes
+setConfig({
+  keyMap: {
+    'ArrowLeft': 'left',
+    'ArrowRight': 'right',
+    'ArrowUp': 'up',
+    'ArrowDown': 'down',
+    // Custom remote control mappings
+    1001: 'left',    // Custom remote left button
+    1002: 'right',   // Custom remote right button
+    1003: 'up',      // Custom remote up button
+    1004: 'down'     // Custom remote down button
+  }
+});
+```
+
+This is particularly useful for TV remotes that use non-standard key codes or when integrating with custom input handling systems.
+
+## Focusable Elements
+
+LRUD spatial defines focusable elements as those which match any of the following CSS selectors:
+
+- `[tabindex]` (for `tabindex >= 0`)
 - `a`
 - `button`
 - `input`
 
+**Note**: All selector except tabindex need to be reviewed if they are needed.
+
 ### Ignoring Focusables
 
-Any potential candidate with the `lrud-ignore` class, or inside any parent with the `lrud-ignore` class, will not be considered focusable and will be skipped over. By default LRUD will not ignore candidates that have `opacity: 0` or have a parent with `opacity: 0`, so this class can be used for that.
+Any potential candidate with the `.lrud-ignore` class, or inside any parent with the `.lrud-ignore` class, will not be considered focusable and will be skipped over. By default LRUD will not ignore candidates that have `opacity: 0` or have a parent with `opacity: 0`, so this class can be used for that.
 
-Focusables with a `tabindex="-1"` attribute will be skipped over, however any focusable inside any parent with `tabindex="-1"` will still be considered focusable.
+Focusables with a `tabindex="-1"` attribute will be skipped over, **however** any focusable inside any parent with `tabindex="-1"` will still be considered focusable (important for `.lrud-container` elements which use `tabindex="-1"`).
 
 Potential candidates with `disabled` or `aria-disabled="true"` attributes will not be considered focusable.
 
-### Focusable Overlap
+### Focusable Overlap Threshold
 
-By default, LRUD will measure to all candidates that are in the direction to move. It will also include candidates that overlap the current focus by up to 30%, allowing for e.g. a 'right' movement to include something that is above the current focus, but has half of it's size expanding to the right.
+By default, LRUD measures to all candidates that are in the direction to move. It also includes candidates that overlap the current focus by up to **30%**, allowing directional movements to include elements that are slightly off-axis.
 
-This threshold can be adjusted on a per-element basis with the `data-lrud-overlap-threshold` attribute, as a float from 0.0 to 1.0. An overlap of 0.0 will make a candidate only be considered if it is located _entirely_ in the direction of movement.
+For example:
+- Moving **right** can focus on something **above** the current focus if 30% of the target's width extends to the right
+- Moving **down** can focus on something **left** of the current focus if 30% of the target's height extends downward
 
-Please also note that LRUD does not consider the Z Axis, which can cause surprising results with elements that are overlapped in this way, including in the case of full screen overlays on existing UIs. The above attribute can help alleviate this issue.
+This threshold can be adjusted on a per-element basis using the `data-lrud-overlap-threshold` attribute, as a float from 0.0 to 1.0:
+
+```html
+<!-- Strict directional alignment: only candidates entirely in the direction -->
+<button data-lrud-overlap-threshold="0.0">Strict</button>
+
+<!-- Relaxed alignment: up to 70% off-axis allowed -->
+<button data-lrud-overlap-threshold="0.7">Relaxed</button>
+```
+
+An overlap of `0.0` makes a candidate only be considered if it is located _entirely_ in the direction of movement.
+
+**Note**: LRUD does not consider the Z-axis, which can cause surprising results with overlapping elements. Use this attribute to help alleviate issues with full-screen overlays or complex UIs.
 
 ## Containers
 
-Focusables can be wrapped in containers. Containers can keep track of the last
-active focusable item within them using a `data-focus` attribute.
+Containers are navigation scopes that can manage focus state and enforce navigation rules. They are defined by the `.lrud-container` class and `tabindex="-1"` attribute.
 
-> Focusables that should be tracked must have a unique ID attribute.
+### Focus Memory with `data-focus`
 
-When a container has no previous focus state, it's first focusable element is
-used instead.
-
-At this time, containers are defined as matching the CSS selectors:
-`nav`, `section` or `.lrud-container`.
-
-### Block exits
-
-In some instances, it is desirable to prevent lrud-spatial from selecting another
-"best candidate" for example at the bottom of a list. To do this, a container element
-should add an additional `data-block-exit` attribute to prevent further selection in
-that direction. This should be a space separated list.
-
-E.g.
+Containers with `data-autofocus="true"` automatically track the last focused child element using the `data-focus` attribute:
 
 ```html
-<div class="lrud-container" data-block-exit="up down">...</div>
+<!-- Focus memory enabled -->
+<div class="lrud-container" data-autofocus="true">
+  <button id="btn1">Button 1</button>
+  <button id="btn2">Button 2</button>
+  <button id="btn3">Button 3</button>
+</div>
 ```
 
-### Focusable Containers
+When a user focuses `btn2` and then exits the container, the container stores `data-focus="btn2"`. Upon re-entering the container, focus automatically returns to `btn2` instead of the first child.
 
-By default, LRUD only measures the distances to focusables and does not consider where their container boundaries are. Adding the attribute `data-lrud-consider-container-distance` to a container will include it in the distance calculations, as well as its children.
+**Requirements**: 
+- Focusable children must have unique `id` attributes
+- Container must have `data-autofocus="true"` enabled
+- Use `updateAncestorsAutoFocus(elem, scope)` to update focus memory when focus changes
 
-If the container is the closest out of all the possible focusables assessed, LRUD will return one of its children - even if they are not necessarily the spatially closest focusable.
+### Destinations Override
 
-The above container focus logic will still be used, and moving into a focusable container will move to its last focused child if there was one, at any level of container depth inside it.
+The `data-destinations` attribute allows specifying preferred focus targets as a space-separated list of element IDs:
+
+```html
+<div class="lrud-container" data-autofocus="true" data-destinations="priority-btn secondary-btn fallback-btn">
+  <button id="priority-btn">High Priority</button>
+  <button id="secondary-btn">Secondary</button>
+  <button id="fallback-btn">Fallback</button>
+  <button id="other">Not in destinations</button>
+</div>
+```
+
+Focus resolution:
+1. First, the library attempts to focus the first valid element in the `data-destinations` list
+2. If that element is removed from the DOM, it tries the next one
+3. If all destination elements are removed or invalid:
+   - **With `data-autofocus="true"`**: Falls back to focus memory (`data-focus`) or first focusable child
+   - **Without `data-autofocus`**: Falls back to spatial navigation algorithm (best candidate by alignment/distance)
+
+### Block Exit - Focus Trapping
+
+Prevent focus from leaving a container in specific directions using `data-block-exit`:
+
+```html
+<!-- Block upward and downward exits (e.g., modal dialog) -->
+<div class="lrud-container" data-block-exit="up down" data-autofocus="true">
+  <button id="btn1">Option 1</button>
+  <button id="btn2">Option 2</button>
+  <button id="close">Close</button>
+</div>
+```
+
+When `data-block-exit` contains a direction:
+- Attempting to navigate in that direction keeps focus within the container
+- The spatial algorithm finds the best candidate within the container itself
+- This is useful for modal dialogs, popups, or constrained focus regions
+
+**Valid directions**: `up`, `down`, `left`, `right` (space-separated combinations allowed)
+
+### Nested Containers
+
+Containers can be nested, and the library respects the hierarchy:
+
+```html
+<div class="lrud-container" id="outer">
+  <button id="outer-btn1">Outer Button 1</button>
+  
+  <div class="lrud-container" data-autofocus="true" id="inner">
+    <button id="inner-btn1">Inner Button 1</button>
+    <button id="inner-btn2">Inner Button 2</button>
+  </div>
+  
+  <button id="outer-btn2">Outer Button 2</button>
+</div>
+```
+
+- Moving focus into the inner container automatically applies its autofocus logic
+- Focus memory is maintained independently for each container
+- Block exits are applied at the appropriate container level
 
 
-## How does it work?
+## How It Works
 
-To determine the next element that should be focused;
+LRUD Spatial's algorithm is inspired by Android TV navigation and implements alignment-prioritized candidate selection.
 
-1. Uses the key code to get the direction of movement
-2. From the currently focused DOM element, get the coordinates of the edge
-   corresponding to the direction you are moving
-3. For all other focusable elements, get the coordinates of the opposite edge
-   (the edge you are entering)
-4. Find the line between the exit and entry coordinates that has the shortest
-   length
+### Navigation Algorithm
+
+To determine the next element that should be focused:
+
+1. **Direction Mapping**: Converts the key/keyCode to a direction (`left`, `right`, `up`, `down`)
+2. **Candidate Collection**: Finds all focusable elements within the navigation scope
+3. **Direction Filtering**: Removes candidates that are not in the requested direction
+4. **Alignment Sorting**: Orders candidates by how well they align on the movement axis
+   - For horizontal movement: Prioritize elements with matching Y-coordinates (vertical alignment)
+   - For vertical movement: Prioritize elements with matching X-coordinates (horizontal alignment)
+5. **Distance Sorting**: Among aligned candidates, choose the closest by Euclidean distance
+6. **Container Resolution**: If the candidate is a container with `data-autofocus`, apply focus logic
+7. **Block Exit Validation**: Check if exit is blocked in the chosen direction
+
+### Alignment Priority Strategy
+
+This is the key enhancement that makes navigation feel natural on TV platforms:
+
+**Example: Navigating Right**
+```
+Current Focus:  ┌─────────┐
+                │ Button  │
+                └─────────┘
+                
+Candidates:
+- Candidate A:  ┌────────┐     ← BEST (perfectly aligned vertically)
+                │ Button │
+                └────────┘
+                
+- Candidate B:       ┌──────┐  ← SECOND (slight vertical offset)
+                     │Button│
+                     └──────┘
+                     
+- Candidate C:   ┌─────────┐   ← THIRD (far vertical offset)
+                 │ Button  │
+                 └─────────┘
+```
+
+Even if Candidate B is closer in distance, Candidate A is chosen because it's vertically aligned, matching Android TV behavior.
+
+### Performance Optimizations
+
+This version includes several performance enhancements:
+- **Eliminated `Element.matches()` calls** in hot paths, using direct DOM API methods instead
+- **Optimized candidate filtering** with Set data structures for ignored elements
+- **Memoized container checks** avoiding repeated selector matching
+- **Direct attribute access** instead of computed style lookups
+
+These optimizations are critical for TV platforms where CPU resources are limited and navigation must be responsive.
 
 ## Developing
 
@@ -108,31 +369,112 @@ To get started, run `npm ci`.
 
 ### Building
 
-`npm run build` will emit a transpiled and minified version of the library.
-This is run during CI to prepare the artifact published to NPM. It can also be
-useful for integrating against another local project with `npm link`.
+`npm run build` will emit a transpiled and minified version of the library. This is run during CI to prepare the artifact published to NPM. It can also be useful for integrating against another local project with `npm link`.
 
 ### Testing
 
-The `test/layouts` directory contains HTML designed to mirror various
-real-world use cases, and allow for behavioural vertification of library
-features such as containers and grids.
+The test suite is organized into two separate test runners:
 
-Significant new features should come with corresponding layouts that test them.
+#### Layout Tests - Container Behavior (`test/lrud.test.js`)
+Tests core container functionality including:
+- Focus memory and `data-focus` attribute tracking
+- Destinations override behavior and fallback scenarios
+- Block exit focus trapping
+- Autofocus container logic
+- Nested container navigation
+- Edge cases (zero-dimension elements, removed DOM elements)
 
-Use `npm test` to run the tests.
+Run with: `npm run test:layouts`
+
+#### Directional Tests - Spatial Navigation (`test/lrud-directional.test.js`)
+Tests directional navigation algorithm including:
+- Alignment prioritization (axis-aligned candidates first)
+- Overlap weighting with `data-lrud-overlap-threshold`
+- Complex diagonal movements
+- Edge case candidate selection
+- Candidate ordering by distance and alignment
+
+Run with: `npm run test:core`
+
+#### All Tests
+Run complete test suite with: `npm run test:all` or `npm test`
+
+**Test Layout Files**: The `test/layouts/` directory contains HTML files designed to mirror real-world use cases:
+- Basic navigation grids and lists
+- Nested container hierarchies
+- Block exit scenarios
+- Autofocus and focus memory validation
+- Destinations fallback cases
+- TV-specific layouts (tiled items, etc.)
+
+Significant new features should come with corresponding layout files and test cases.
 
 #### Debugging
 
-The tests use [puppeteer](https://github.com/puppeteer/puppeteer) to spin up a
-headless browser. The browser loads the layouts mentioned above and runs
-scenarios from [lrud.test.js](./test/lrud.test.js) against the unminified
-code from `lib/`.
+The tests use [puppeteer](https://github.com/puppeteer/puppeteer) to spin up a headless browser. The browser loads layouts and runs test scenarios against the unminified code from `lib/`.
 
-To investigate why a test is failing, or just to hack on some changes... run
-`npm run server`. Then go to [http://localhost:3005](http://localhost:3005) and
-select a layout.
+To investigate test failures or debug navigation behavior:
 
-## Contact
+1. Start the development server: `npm run server`
+2. Open [http://localhost:3005](http://localhost:3005) in a browser
+3. Select a layout file to interact with
+4. Use arrow keys to navigate and observe focus behavior
+5. Open browser DevTools to inspect DOM attributes and focus state
 
-[TVOpenSource@bbc.co.uk](mailto:TVOpenSource@bbc.co.uk) - we aim to respond to emails within a week.
+This allows you to verify spatial navigation behavior in a real browser environment.
+
+## Architecture Overview
+
+### Core Modules
+
+**`lib/lrud.js`** (701 lines)
+- Main spatial navigation engine
+- Key exports:
+  - `getNextFocus(elem, keyOrKeyCode, scope)` - Main navigation API
+  - `updateAncestorsAutoFocus(elem, scope)` - Updates focus memory
+  - `getParentContainer(elem)` - Traverses to parent container
+  - `setConfig(config)` - Configuration for TV Navigation
+
+**Key Internal Functions**:
+- `sortValidCandidates()` - Implements alignment-first sorting
+- `isValidCandidate()` - Directional filtering with overlap tolerance
+- `findDestinationOrAutofocus()` - Applies focus resolution logic
+- `getNextFromCandidates()` - Selects next focus from sorted candidates
+- `getFocusables()` - Gathers focusable elements respecting ignore rules
+
+### Data Attributes Reference
+
+| Attribute | Type | Values | Purpose |
+|-----------|------|--------|---------|
+| `class="lrud-container"` | CSS Class | Fixed | Marks element as navigation container |
+| `tabindex="-1"` | HTML Attr | Fixed | Makes container non-focusable, only children |
+| `data-autofocus` | Custom Attr | `"true"` / `"false"` | Enables focus memory tracking |
+| `data-focus` | Custom Attr | Element ID | Stores last focused child (auto-managed) |
+| `data-destinations` | Custom Attr | Space-separated IDs | Priority focus targets |
+| `data-block-exit` | Custom Attr | Directions | Trap focus in container |
+| `data-lrud-overlap-threshold` | Custom Attr | 0.0 - 1.0 | Directional alignment tolerance |
+
+## Related Projects
+
+- **[React Native Web TV](https://github.com/hps1978/react-native-web-tv)** - React Native Web port with built-in spatial navigation support
+- **[@bbc/lrud-spatial](https://github.com/bbc/lrud-spatial)** - Original BBC implementation
+
+## Contributing
+
+This is an experimental project. Contributions are welcome, particularly for:
+- Performance optimizations for constrained TV environments
+- Additional test coverage for edge cases
+- Documentation and examples
+- Integration with other React Native Web TV components
+
+## License
+
+Apache-2.0 (inherited from BBC LRUD Spatial)
+
+## Acknowledgments
+
+Built on the excellent foundation of [@bbc/lrud-spatial](https://github.com/bbc/lrud-spatial), with significant enhancements for TV platform compatibility and React Native Web integration.
+
+---
+
+**Status**: Experimental | **Target**: TV Platforms | **Framework**: React Native Web

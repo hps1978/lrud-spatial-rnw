@@ -514,4 +514,121 @@ describe('LRUD Spatial - New Implementation', () => {
       expect(dataFocus).toContain('btn-3');
     });
   });
+
+  describe('Destinations Fallback - No Autofocus', () => {
+    it('should use directional navigation when destination element is removed and no autofocus', async () => {
+      await page.goto(`${testPath}/destinations-fallback-no-autofocus.html`);
+      await page.waitForFunction('document.activeElement');
+
+      // Start at outside button
+      let result = await page.evaluate(() => document.activeElement.id);
+      expect(result).toEqual('btn-outside');
+
+      // Navigate down into container - since destination (btn-removed) doesn't exist and no autofocus,
+      // should use directional navigation to find first valid candidate
+      await page.keyboard.press('ArrowDown');
+      result = await page.evaluate(() => document.activeElement.id);
+
+      // Should focus on first valid candidate from directional logic (not a fixed destination)
+      expect(['btn-inside-1', 'btn-inside-2', 'btn-inside-3']).toContain(result);
+    });
+
+    it('should navigate within container when destination is invalid and no autofocus', async () => {
+      await page.goto(`${testPath}/destinations-fallback-no-autofocus.html`);
+      await page.waitForFunction('document.activeElement');
+
+      // Navigate into container
+      await page.keyboard.press('ArrowDown');
+      let result = await page.evaluate(() => document.activeElement.id);
+      const firstFocus = result;
+
+      // Navigate to next button within container
+      await page.keyboard.press('ArrowRight');
+      result = await page.evaluate(() => document.activeElement.id);
+
+      // Should be able to navigate within container
+      expect(['btn-inside-1', 'btn-inside-2', 'btn-inside-3']).toContain(result);
+      expect(result).not.toEqual(firstFocus);
+    });
+
+    it('should exit container when allowed by navigation', async () => {
+      await page.goto(`${testPath}/destinations-fallback-no-autofocus.html`);
+      await page.waitForFunction('document.activeElement');
+
+      // Navigate into container
+      await page.keyboard.press('ArrowDown');
+      let result = await page.evaluate(() => document.activeElement.id);
+      expect(['btn-inside-1', 'btn-inside-2', 'btn-inside-3']).toContain(result);
+
+      // Navigate back up to outside button
+      await page.keyboard.press('ArrowUp');
+      result = await page.evaluate(() => document.activeElement.id);
+
+      // Should exit to outside button
+      expect(result).toEqual('btn-outside');
+    });
+  });
+
+  describe('Destinations Fallback - With Autofocus', () => {
+    it('should use autofocus when destination element is removed and autofocus is set', async () => {
+      await page.goto(`${testPath}/destinations-fallback-with-autofocus.html`);
+      await page.waitForFunction('document.activeElement');
+
+      // Start at outside button
+      let result = await page.evaluate(() => document.activeElement.id);
+      expect(result).toEqual('btn-outside');
+
+      // Navigate down into container - since destination (btn-removed) doesn't exist but autofocus is set,
+      // should use autofocus logic to find first focusable
+      await page.keyboard.press('ArrowDown');
+      result = await page.evaluate(() => document.activeElement.id);
+
+      // Should focus on first focusable via autofocus logic
+      expect(['btn-inside-1', 'btn-inside-2', 'btn-inside-3']).toContain(result);
+    });
+
+    it('should remember focus position with autofocus when destination is invalid', async () => {
+      await page.goto(`${testPath}/destinations-fallback-with-autofocus.html`);
+      await page.waitForFunction('document.activeElement');
+
+      // Navigate into container
+      await page.keyboard.press('ArrowDown');
+      let result = await page.evaluate(() => document.activeElement.id);
+      const initialFocus = result;
+
+      // Navigate to btn-inside-2
+      await page.keyboard.press('ArrowRight');
+      result = await page.evaluate(() => document.activeElement.id);
+      expect(result).not.toEqual(initialFocus);
+
+      // Check that data-focus was updated
+      const dataFocus = await page.evaluate(() =>
+        document.getElementById('dest-container-with-auto').getAttribute('data-focus')
+      );
+      expect(dataFocus).toContain('btn-inside');
+    });
+
+    it('should navigate back to remembered focus when re-entering container', async () => {
+      await page.goto(`${testPath}/destinations-fallback-with-autofocus.html`);
+      await page.waitForFunction('document.activeElement');
+
+      // Navigate into container
+      await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('ArrowRight');
+      let result = await page.evaluate(() => document.activeElement.id);
+      const focusedButton = result;
+
+      // Navigate out of container
+      await page.keyboard.press('ArrowUp');
+      result = await page.evaluate(() => document.activeElement.id);
+      expect(result).toEqual('btn-outside');
+
+      // Navigate back into container
+      await page.keyboard.press('ArrowDown');
+      result = await page.evaluate(() => document.activeElement.id);
+
+      // Should remember the last focused button
+      expect(result).toEqual(focusedButton);
+    });
+  });
 });
