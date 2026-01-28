@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/bbc/lrud-spatial/blob/master/.github/lrud.svg?raw=true" alt="LRUD spatial"/>
+  <img src=".github/lrud.svg" alt="LRUD Spatial - React Native Web TV"/>
 </p>
 
 # LRUD Spatial - React Native Web TV Edition
