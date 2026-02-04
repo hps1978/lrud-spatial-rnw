@@ -65,13 +65,21 @@ When focus first enters a container with `data-autofocus="true"`, the focus reso
 
 When navigating with arrow keys inside a container:
 
-1. **Alignment First**: All candidate elements are sorted by their alignment on the movement axis
-   - For horizontal movement (left/right): Vertical alignment matters most
-   - For vertical movement (up/down): Horizontal alignment matters most
+1. **Axis-Band Priority**: Candidates overlapping the starting element's perpendicular axis are preferred
+   - For horizontal movement (left/right): Vertical overlap (30% default)
+   - For vertical movement (up/down): Horizontal overlap (30% default)
 
-2. **Distance Second**: Among aligned candidates, choose the closest one by Euclidean distance
+2. **Within Axis Band**: Distance-first sorting
+   - Choose closest candidate by Euclidean distance
+   - Then by alignment delta if distance is equal
+   - Then by DOM order
 
-3. **DOM Order Third**: If tied on alignment and distance, preserve DOM order
+3. **Out-of-Axis Fallback**: Traditional alignment-first for sparse layouts
+   - Alignment delta (perpendicular axis alignment) matters most
+   - Then by distance for candidates with similar alignment
+   - Then by DOM order
+
+4. **DOM Order**: Final tiebreaker when distance and alignment are equal
 
 #### Exit Strategy
 
@@ -318,38 +326,67 @@ To determine the next element that should be focused:
 1. **Direction Mapping**: Converts the key/keyCode to a direction (`left`, `right`, `up`, `down`)
 2. **Candidate Collection**: Finds all focusable elements within the navigation scope
 3. **Direction Filtering**: Removes candidates that are not in the requested direction
-4. **Alignment Sorting**: Orders candidates by how well they align on the movement axis
-   - For horizontal movement: Prioritize elements with matching Y-coordinates (vertical alignment)
-   - For vertical movement: Prioritize elements with matching X-coordinates (horizontal alignment)
-5. **Distance Sorting**: Among aligned candidates, choose the closest by Euclidean distance
+4. **Alignment Sorting**: Orders candidates into two tiers
+   - **First tier**: Candidates overlapping the starting element's axis band (30% threshold)
+   - Within first tier: Sort by distance (closest first), then alignment, then DOM order
+   - **Second tier**: Remaining out-of-axis candidates
+   - Within second tier: Sort by alignment (best first), then distance, then DOM order
+5. **Distance Sorting**: Applied within each tier appropriately (distance-first for axis-overlap, secondary for out-of-axis)
 6. **Container Resolution**: If the candidate is a container with `data-autofocus`, apply focus logic
 7. **Block Exit Validation**: Check if exit is blocked in the chosen direction
 
-### Alignment Priority Strategy
+### Alignment Priority Strategy with Axis-Overlap Priority
 
 This is the key enhancement that makes navigation feel natural on TV platforms:
 
+**New Behavior: Axis-Band Distance-First**
+
+The algorithm now uses a **two-tier prioritization**:
+
+1. **Tier 1: Axis-Band Overlap** (Highest Priority)
+   - Candidates whose bounds overlap the starting element's axis band (perpendicular axis) are prioritized
+   - For horizontal movement (left/right): Vertical overlap matters (at least 30% by default)
+   - For vertical movement (up/down): Horizontal overlap matters (at least 30% by default)
+   - **Within axis-overlapping candidates: Distance wins** — closer candidates beat farther aligned ones
+
+2. **Tier 2: Out-of-Axis Candidates** (Lower Priority)
+   - Candidates outside the axis band fall back to alignment-first behavior
+   - Perfect alignment trumps distance for these candidates
+   - **Alignment → Distance → DOM Order**
+
 **Example: Navigating Right**
+
 ```
-Current Focus:  ┌─────────┐
-                │ Button  │
-                └─────────┘
-                
+Current Focus:    ┌──────────┐
+                  │ Button   │  (Y: 50-100)
+                  └──────────┘
+
+Axis Band (30% vertical overlap):  Y: 64-86
+
 Candidates:
-- Candidate A:  ┌────────┐     ← BEST (perfectly aligned vertically)
-                │ Button │
+- Candidate A:  ┌────────┐        ← BEST (70px away, overlaps axis band by 40%)
+                │ Button │  (Y: 70-95)
                 └────────┘
-                
-- Candidate B:       ┌──────┐  ← SECOND (slight vertical offset)
-                     │Button│
-                     └──────┘
-                     
-- Candidate C:   ┌─────────┐   ← THIRD (far vertical offset)
-                 │ Button  │
+
+- Candidate B:      ┌──────┐      ← SECOND (130px away, perfectly aligned Y:50-100)
+                    │Button│  (Y: 50-100)
+                    └──────┘
+
+- Candidate C:   ┌─────────┐      ← THIRD (150px away, far off-axis Y:10-35)
+                 │ Button  │  (Y: 10-35)
                  └─────────┘
 ```
 
-Even if Candidate B is closer in distance, Candidate A is chosen because it's vertically aligned, matching Android TV behavior.
+**Rationale**: 
+- **Candidate A wins** because it overlaps the origin's axis band and is closer (distance-first within axis)
+- **Candidate B loses** even though perfectly aligned, because it's farther and outside the axis band
+- **Candidate C loses** due to both poor alignment and distance
+
+This matches Android TV behavior for more predictable navigation: focus moves to nearby candidates that share your axis before considering distant perfectly-aligned ones.
+
+**Fallback Behavior**:
+When no axis-overlapping candidates exist, alignment-first prioritization resumes for out-of-axis candidates, ensuring alignment-based navigation still works in sparse layouts.
+
 
 ### Performance Optimizations
 
