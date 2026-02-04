@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Axis Overlap Priority</title>
+  <link rel="stylesheet" href="../layouts/styles.css">
+  <script type="module" src="../handleKeyDown.js"></script>
+</head>
+<body>
+  <div class="container" style="position: relative; height: 200px;">
+    <!-- Start (origin) -->
+    <button tabindex="0" id="btn-start" style="position: absolute; left: 10px; top: 10px; width: 50px; height: 50px;">Start</button>
+
+    <!-- Close candidate within axis band (overlaps origin Y by 40%) -->
+    <button tabindex="0" id="btn-axis-overlap-close" style="position: absolute; left: 70px; top: 40px; width: 60px; height: 60px;">Axis Overlap</button>
+
+    <!-- Farther candidate with perfect alignment -->
+    <button tabindex="0" id="btn-perfect-align-far" style="position: absolute; left: 130px; top: 10px; width: 50px; height: 50px;">Perfect Align</button>
+  </div>
+</body>
+</html>

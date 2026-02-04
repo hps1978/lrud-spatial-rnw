@@ -126,6 +126,7 @@ Located in `test/directional-layouts/`:
 - **directional-validation.html** - Tests directional candidate filtering (right/left/up/down)
 - **overlap-weighting.html** - Tests `data-lrud-overlap-threshold` attribute
 - **alignment-priority.html** - Tests alignment prioritization in candidate selection
+- **axis-overlap-priority.html** - Tests axis-band overlap prioritization vs far perfect alignment
 - **complex-direction.html** - Tests complex diagonal and multi-directional scenarios
 - **edge-cases.html** - Tests boundary conditions (zero-dimension, tiny, huge buttons)
 

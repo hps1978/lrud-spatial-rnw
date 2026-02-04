@@ -181,6 +181,24 @@ describe('LRUD Directional Navigation - isValidCandidate Tests', () => {
     });
   });
 
+  describe('Axis Overlap Priority - Distance First', () => {
+    it('should prefer closer candidates within the axis band over farther perfect alignment', async () => {
+      await page.goto(`${testPath}/axis-overlap-priority.html`);
+      await page.waitForFunction('document.activeElement');
+
+      // Verify initial focus
+      let result = await page.evaluate(() => document.activeElement.id);
+      expect(result).toEqual('btn-start');
+
+      // Move right from start
+      await page.keyboard.press('ArrowRight');
+      result = await page.evaluate(() => document.activeElement.id);
+
+      // Axis-overlapping candidate should win over farther perfect alignment
+      expect(result).toEqual('btn-axis-overlap-close');
+    });
+  });
+
   describe('Complex Directions - Multiple Axis Movement', () => {
     it('should handle down movement correctly', async () => {
       await page.goto(`${testPath}/complex-direction.html`);
