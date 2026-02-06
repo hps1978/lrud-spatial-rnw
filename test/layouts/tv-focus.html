@@ -33,9 +33,9 @@
     <!-- Nested Container Row -->
     <div class="row">
       <!-- Outer container with no autofocus -->
-      <div class="lrud-container" tabindex="-1" data-autofocus="false" id="outer-container">
+      <div class="lrud-container" tabindex="-1" id="outer-container">
         <!-- Inner container with autofocus, destinations (empty), and block-exit left -->
-        <div class="lrud-container" tabindex="-1" data-autofocus="true" data-destinations="" data-block-exit="left" id="inner-container">
+        <div class="lrud-container" tabindex="0" data-autofocus="true" data-destinations="" data-block-exit="left" id="inner-container">
           <button tabindex="0" id="btn-wrapped-1">Wrapped Button 1</button>
           <button tabindex="0" id="btn-wrapped-2">Wrapped Button 2</button>
           <button tabindex="0" id="btn-wrapped-3">Wrapped Button 3</button>
@@ -48,7 +48,7 @@
       <button tabindex="0" id="btn-left-bottom">Left Bottom</button>
       
       <!-- Focus guide container with destination -->
-      <div class="lrud-container" tabindex="-1" data-autofocus="false" data-destinations="btn-left-top" id="guide-container">
+      <div class="lrud-container" tabindex="0" data-destinations="btn-left-top" id="guide-container">
         <span>Focus Guide</span>
       </div>
       

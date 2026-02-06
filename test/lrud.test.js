@@ -236,6 +236,23 @@ describe('LRUD Spatial - New Implementation', () => {
     });
   });
 
+  describe('Block Exit Container (Focusable)', () => {
+    it('should resolve to child focus and block exit', async () => {
+      await page.goto(`${testPath}/block-exit-container-focusable.html`);
+      await page.waitForFunction('document.activeElement');
+
+      // Enter container and verify autofocus resolution
+      await page.keyboard.press('ArrowDown');
+      let result = await page.evaluate(() => document.activeElement.id);
+      expect(result).toEqual('btn-1');
+
+      // Exit up should be blocked
+      await page.keyboard.press('ArrowUp');
+      result = await page.evaluate(() => document.activeElement.id);
+      expect(result).toEqual('btn-1');
+    });
+  });
+
   describe('Block Exit Container (No Autofocus)', () => {
     it('should block exit in up direction without autofocus', async () => {
       await page.goto(`${testPath}/block-exit-no-autofocus.html`);
