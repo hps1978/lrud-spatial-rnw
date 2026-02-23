@@ -361,4 +361,78 @@ describe('LRUD Directional Navigation - isValidCandidate Tests', () => {
       expect(['btn-default-overlap', 'btn-high-overlap', 'btn-low-overlap']).toContain(result);
     });
   });
+
+  // describe('Visibility Handling - Candidate Filtering', () => {
+  //   it('should skip candidates with display none', async () => {
+  //     await page.goto(`${testPath}/visibility.html`);
+  //     await page.waitForFunction('document.activeElement');
+
+  //     await page.evaluate(() => {
+  //       const rightA = document.getElementById('btn-right-a');
+  //       rightA.style.display = 'none';
+  //     });
+
+  //     await page.keyboard.press('ArrowRight');
+  //     const result = await page.evaluate(() => document.activeElement.id);
+
+  //     expect(result).toEqual('btn-right-b');
+  //   });
+
+  //   it('should skip candidates with opacity 0 and pointer-events none', async () => {
+  //     await page.goto(`${testPath}/visibility.html`);
+  //     await page.waitForFunction('document.activeElement');
+
+  //     await page.evaluate(() => {
+  //       const rightA = document.getElementById('btn-right-a');
+  //       rightA.style.display = '';
+  //       rightA.style.opacity = '0';
+  //       rightA.style.pointerEvents = 'none';
+  //     });
+
+  //     await page.keyboard.press('ArrowRight');
+  //     const result = await page.evaluate(() => document.activeElement.id);
+
+  //     expect(result).toEqual('btn-right-b');
+  //   });
+
+  //   it('should skip candidates obscured by an overlay', async () => {
+  //     await page.goto(`${testPath}/visibility.html`);
+  //     await page.waitForFunction('document.activeElement');
+
+  //     await page.evaluate(() => {
+  //       const rightA = document.getElementById('btn-right-a');
+  //       const overlay = document.getElementById('btn-right-a-overlay');
+  //       rightA.style.display = '';
+  //       rightA.style.opacity = '';
+  //       rightA.style.pointerEvents = '';
+  //       overlay.style.display = 'block';
+  //     });
+
+  //     await page.keyboard.press('ArrowRight');
+  //     const result = await page.evaluate(() => document.activeElement.id);
+
+  //     expect(result).toEqual('btn-right-b');
+  //   });
+
+  //   it('should skip candidates when overlay z-index is higher', async () => {
+  //     await page.goto(`${testPath}/visibility.html`);
+  //     await page.waitForFunction('document.activeElement');
+
+  //     await page.evaluate(() => {
+  //       const rightA = document.getElementById('btn-right-a');
+  //       const overlay = document.getElementById('btn-right-a-overlay');
+  //       rightA.style.display = '';
+  //       rightA.style.opacity = '';
+  //       rightA.style.pointerEvents = '';
+  //       rightA.style.zIndex = '-1';
+  //       overlay.style.display = 'block';
+  //       overlay.style.zIndex = '0';
+  //     });
+
+  //     await page.keyboard.press('ArrowRight');
+  //     const result = await page.evaluate(() => document.activeElement.id);
+
+  //     expect(result).toEqual('btn-right-b');
+  //   });
+  // });
 });

@@ -8,7 +8,7 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "jest",
+    "test": "yarn test:core && yarn test:layouts",
     "test:layouts": "jest test/lrud.test.js",
     "test:core": "jest test/lrud-directional.test.js",
     "test:all": "jest test/lrud.test.js test/lrud-directional.test.js",

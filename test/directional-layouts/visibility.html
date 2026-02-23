@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Visibility Handling</title>
+  <link rel="stylesheet" href="../layouts/styles.css">
+  <script type="module" src="../handleKeyDown.js"></script>
+  <style>
+    .overlay {
+      position: absolute;
+      width: 200px;
+      height: 60px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 2px solid #000;
+      pointer-events: auto;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <button tabindex="0" id="btn-center" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);">Center</button>
+
+    <button tabindex="0" id="btn-right-a" style="position: absolute; left: 70%; top: 50%; transform: translate(-50%, -50%);">Right A</button>
+    <button tabindex="0" id="btn-right-b" style="position: absolute; left: 85%; top: 50%; transform: translate(-50%, -50%);">Right B</button>
+
+    <div id="btn-right-a-overlay" class="overlay" style="left: 70%; top: 50%; transform: translate(-50%, -50%);"></div>
+  </div>
+</body>
+</html>
