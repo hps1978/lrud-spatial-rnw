@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Nested Parent Blocks Right</title>
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="../handleKeyDown.js"></script>
+</head>
+<body>
+  <section id="lrud-screen-1" class="container" style="position: relative; width: 900px; min-height: 220px; overflow: visible;">
+    <div class="lrud-container" tabindex="-1" data-block-exit="right" id="parent-block-right">
+      <div class="lrud-container" tabindex="-1" data-block-exit="up" id="child-allows-right">
+        <button tabindex="0" id="leaf-btn">Leaf Button</button>
+      </div>
+    </div>
+
+    <button tabindex="0" id="outside-right" style="position: absolute; left: 520px; top: 70px;">Outside Right</button>
+  </section>
+</body>
+</html>
