@@ -299,6 +299,59 @@ describe('LRUD Spatial - New Implementation', () => {
     });
   });
 
+  describe('Container Scoping', () => {
+    it('should scope navigation to the current screen container', async () => {
+      await page.goto(`${testPath}/screen-scope.html`);
+      await page.waitForFunction('document.activeElement');
+
+      let result = await page.evaluate(() => document.activeElement.id);
+      expect(result).toEqual('screen1-btn');
+
+      // Right candidate exists in another screen, but should not be considered
+      await page.keyboard.press('ArrowRight');
+      result = await page.evaluate(() => document.activeElement.id);
+      expect(result).toEqual('screen1-btn');
+    });
+
+    it('should scope navigation to blocked container within a screen', async () => {
+      await page.goto(`${testPath}/screen-block-exit-right.html`);
+      await page.waitForFunction('document.activeElement');
+
+      // Move into the blocked container
+      await page.keyboard.press('ArrowDown');
+      let result = await page.evaluate(() => document.activeElement.id);
+      expect(result).toEqual('blocked-btn');
+
+      // Exit to the right should be blocked
+      await page.keyboard.press('ArrowRight');
+      result = await page.evaluate(() => document.activeElement.id);
+      expect(result).toEqual('blocked-btn');
+
+      // Leaving the blocked container first should allow right navigation again
+      await page.keyboard.press('ArrowUp');
+      result = await page.evaluate(() => document.activeElement.id);
+      expect(result).toEqual('screen-top');
+
+      await page.keyboard.press('ArrowRight');
+      result = await page.evaluate(() => document.activeElement.id);
+      expect(['right-btn', 'other-screen-btn']).toContain(result);
+    });
+
+    it('should block right exit when parent container blocks it even if child allows it', async () => {
+      await page.goto(`${testPath}/nested-parent-blocks-right.html`);
+      await page.waitForFunction('document.activeElement');
+
+      let result = await page.evaluate(() => document.activeElement.id);
+      expect(result).toEqual('leaf-btn');
+
+      // Child container does not block right, but parent does.
+      // Focus must remain inside and not move to outside-right.
+      await page.keyboard.press('ArrowRight');
+      result = await page.evaluate(() => document.activeElement.id);
+      expect(result).toEqual('leaf-btn');
+    });
+  });
+
   describe('Ignore Elements', () => {
     it('should skip elements with lrud-ignore class', async () => {
       await page.goto(`${testPath}/ignore-elements.html`);
