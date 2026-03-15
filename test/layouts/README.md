@@ -103,19 +103,19 @@ This directory contains test layouts designed to validate the new LRUD spatial n
 
 ```bash
 # Run core directional navigation tests (tests isValidCandidate logic)
-npm run test:core
+yarn test:core
 
 # Run layout-based tests (tests container behavior and focus memory)
-npm run test:layouts
+yarn test:layouts
 
 # Run both test suites together
-npm run test:all
+yarn test:all
 
 # Run all tests (default, includes both suites)
-npm test
+yarn test
 
 # Start dev server to manually test layouts
-npm run server
+yarn server
 # Then visit http://localhost:3005/ to see both layout directories
 ```
 
@@ -129,90 +129,72 @@ Located in `test/directional-layouts/`:
 - **axis-overlap-priority.html** - Tests axis-band overlap prioritization vs far perfect alignment
 - **complex-direction.html** - Tests complex diagonal and multi-directional scenarios
 - **edge-cases.html** - Tests boundary conditions (zero-dimension, tiny, huge buttons)
+- **screen-scope-header-single.html** - Tests single-header screen scope behavior
+- **screen-scope-header-multiple.html** - Tests same-screen sibling header scope behavior
+- **visibility.html** - Visibility fixture (currently not enabled in the Jest suite)
 
 **Focus**: Validates the core `isValidCandidate()` algorithm and `sortValidCandidates()` sorting logic
-**Test Count**: 22 tests
+**Test Count**: 29 tests
 
 ### Layout-Based Tests (`test/lrud.test.js`)
 Located in `test/layouts/`:
 - **basic-grid.html** - Basic 2x2 grid navigation
 - **autofocus-container.html** - Container with `data-autofocus="true"` and focus memory
 - **destinations-container.html** - Container with `data-destinations` attribute
+- **destinations-fallback-no-autofocus.html** - Destinations fallback behavior without autofocus
+- **destinations-fallback-with-autofocus.html** - Destinations fallback behavior with autofocus
 - **destinations-only-container.html** - Container with destinations but no autofocus
 - **block-exit-container.html** - Container with `data-block-exit` (focus trapping)
+- **block-exit-container-focusable.html** - Focusable blocking container behavior
+- **block-exit-no-autofocus.html** - Block-exit behavior without autofocus
 - **ignore-elements.html** - Elements with `.lrud-ignore` class and `disabled` attribute
 - **nested-autofocus.html** - Nested autofocus containers with multi-level focus tracking
+- **nested-parent-blocks-right.html** - Parent block-exit precedence in nested containers
+- **screen-scope.html** - Screen-level scope boundaries
+- **screen-block-exit-right.html** - Block-exit behavior within a screen scope
 - **tv-focus.html** - Complex TV layout combining all features
 - **unreachable.html** - Tests unreachable elements and edge cases
-- **hidden.html** - Tests hidden and visibility scenarios
-- **disabled.html** - Tests disabled attribute behavior
-- **focusable-container-with-empty-space.html** - Tests containers with gaps
-- **container-with-empty-space.html** - Tests navigation with empty space
-- **tiled-items.html** - Tests tiled grid layout navigation
 
 **Focus**: Validates container behavior, focus memory, destinations, and block-exit logic
-**Test Count**: 29 tests
+**Test Count**: 42 tests
 
 ## Test Structure
 
 ### Core Directional Navigation Tests
 These tests focus on the **`isValidCandidate()` algorithm** which determines if a candidate element is in the correct direction and valid for focus:
 
-1. **Directional Validation** (2 tests)
-   - Ensures only candidates in the correct direction (right/left/up/down) are selected
-   - Validates that opposite-direction candidates are rejected
+1. **Directional validity and rejection rules**
+  - Ensures only forward candidates in the requested direction are considered.
 
-2. **Overlap Weighting** (3 tests)
-   - Tests `data-lrud-overlap-threshold` attribute
-   - Validates default (0.3), high (0.8), and low (0.1) overlap values
-   - Ensures weighted entry point calculation works correctly
+2. **Overlap and weighting behavior**
+  - Validates `data-lrud-overlap-threshold` and weighted entry-point handling.
 
-3. **Alignment Priority** (3 tests)
-   - Tests that perfectly aligned candidates are prioritized
-   - Validates multi-level sorting: alignment → distance → DOM order
-   - Confirms alignment takes priority even if farther away
+3. **Alignment and sorting priority**
+  - Validates axis-band overlap and alignment/distance ordering.
 
-4. **Complex Directions** (3 tests)
-   - Tests diagonal candidates and multi-directional scenarios
-   - Validates exact alignment detection (e.g., exact-down, exact-right)
-   - Ensures complex geometry is handled correctly
+4. **Complex geometry and edge conditions**
+  - Covers diagonal movement, tiny/large targets, and boundary scenarios.
 
-5. **Edge Cases** (4 tests)
-   - Tests boundary conditions: very small buttons, very large buttons
-   - Validates zero-dimension button exclusion
-   - Tests candidates at exact boundaries
-   - Ensures off-boundary candidates are rejected
-
-6. **WeightedEntryPoint Calculation** (3 tests)
-   - Tests how overlap weighting affects candidate validity
-   - Validates different overlap thresholds change what's selectable
-   - Ensures weighting is applied correctly for all directions
+5. **Screen/header directional scoping**
+  - Verifies same-screen header scoping and prevents cross-scope jumps.
 
 ### Layout-Based Tests
 These tests focus on **container behavior** and **focus management**:
 
-1. **Basic Navigation** (5 tests)
-   - 2x2 grid navigation
-   - Arrow key response
-   - Boundary handling
+1. **Basic navigation and boundaries**
+  - 2x2 grids and edge-of-layout behavior.
 
-2. **Container Features** (12 tests)
-   - Autofocus containers with focus memory (`data-focus`)
-   - Destinations (`data-destinations`)
-   - Focus trapping (`data-block-exit`)
-   - Nested container structures
+2. **Container semantics**
+  - `data-autofocus`, `data-focus`, `data-destinations`, and `data-block-exit`.
 
-3. **Ignore Logic** (3 tests)
-   - `.lrud-ignore` class behavior
-   - `disabled` attribute handling
-   - Children of ignored containers
+3. **Fallback and precedence behavior**
+  - Destination fallback, nested containers, and parent block-exit precedence.
 
-4. **Advanced Scenarios** (9 tests)
-   - TV-like complex layouts
-   - Unreachable elements
-   - Hidden elements
-   - Tiled grids
-   - Empty space navigation
+4. **Screen-level scoping behavior**
+  - `lrud-screen-*` boundaries and scoped block-exit behavior.
+
+5. **TV-like mixed scenarios**
+  - Complex compositions and unreachable target handling.
 
 Each test follows this pattern:
 
@@ -230,12 +212,12 @@ When adding new test layouts:
    - Include `styles.css` for styling
    - Include `handleKeyDown.js` for navigation
    - Use semantic IDs (e.g., `btn-1`, `container-1`)
-3. Add test cases in `/test/lrud-new.test.js`
+3. Add test cases in `/test/lrud.test.js` (layout behavior) or `/test/lrud-directional.test.js` (directional/candidate behavior)
 4. Document the layout purpose in this README
 
 ## Debugging Tips
 
-1. **Visual Testing**: Use `npm run server` and navigate manually
+1. **Visual Testing**: Use `yarn server` and navigate manually
 2. **Inspect Attributes**: Check `data-focus`, `data-autofocus`, `data-destinations` in DevTools
 3. **Focus Tracking**: Red outline shows currently focused element
 4. **Container Borders**: 
