@@ -3,6 +3,15 @@
   "version": "0.0.16",
   "description": "Spatial navigation library",
   "main": "lib/lrud.min.js",
+  "module": "lib/lrud.esm.js",
+  "exports": {
+    ".": {
+      "types": "./lib/types.d.ts",
+      "import": "./lib/lrud.esm.js",
+      "require": "./lib/lrud.min.js",
+      "default": "./lib/lrud.esm.js"
+    }
+  },
   "types": "lib/types.d.ts",
   "directories": {
     "doc": "docs"
@@ -12,7 +21,7 @@
     "test:layouts": "jest test/lrud.test.js",
     "test:core": "jest test/lrud-directional.test.js",
     "test:all": "jest test/lrud.test.js test/lrud-directional.test.js",
-    "build": "rm -f lib/lrud.min.js && babel lib --source-maps true --out-file lib/lrud.min.js",
+    "build": "rm -f lib/lrud.min.js lib/lrud.min.js.map lib/lrud.esm.js lib/lrud.esm.js.map && esbuild lib/lrud.js --bundle --format=cjs --platform=browser --minify --sourcemap --outfile=lib/lrud.min.js && esbuild lib/lrud.js --bundle --format=esm --platform=browser --minify --sourcemap --outfile=lib/lrud.esm.js",
     "server": "node ./test/server.js",
     "lint": "eslint .",
     "prepare": "husky install || exit 0",
@@ -31,6 +40,7 @@
   },
   "homepage": "https://github.com/bbc/lrud-spatial#readme",
   "devDependencies": {
+    "esbuild": "^0.25.10",
     "eslint": "^8.27.0",
     "eslint-config-standard": "^17.0.0",
     "eslint-plugin-jest-formatting": "^3.1.0",

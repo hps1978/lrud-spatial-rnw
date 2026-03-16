@@ -362,6 +362,53 @@ describe('LRUD Directional Navigation - isValidCandidate Tests', () => {
     });
   });
 
+  describe('Screen Scope - Header Left Navigation', () => {
+    it('should keep left navigation scoped to a single header and not enter screen content', async () => {
+      await page.goto(`${testPath}/screen-scope-header-single.html`);
+      await page.waitForFunction('document.activeElement');
+
+      let result = await page.evaluate(() => document.activeElement.id);
+      expect(result).toEqual('screen1-single-header-focus');
+
+      await page.keyboard.press('ArrowLeft');
+      result = await page.evaluate(() => document.activeElement.id);
+
+      expect(result).toEqual('screen1-single-header-focus');
+      expect(result).not.toEqual('screen1-single-screen-focus');
+      expect(result).not.toEqual('screen2-single-screen-focus');
+    });
+
+    it('should move between same-screen left/right headers and not jump into screen content', async () => {
+      await page.goto(`${testPath}/screen-scope-header-multiple.html`);
+      await page.waitForFunction('document.activeElement');
+
+      let result = await page.evaluate(() => document.activeElement.id);
+      expect([
+        'screen1-multi-header-left-focus',
+        'screen1-multi-header-main-focus',
+        'screen1-multi-header-right-focus'
+      ]).toContain(result);
+
+      // Normalize to main header before validating left navigation.
+      if (result === 'screen1-multi-header-left-focus') {
+        await page.keyboard.press('ArrowRight');
+        result = await page.evaluate(() => document.activeElement.id);
+      } else if (result === 'screen1-multi-header-right-focus') {
+        await page.keyboard.press('ArrowLeft');
+        result = await page.evaluate(() => document.activeElement.id);
+      }
+
+      expect(result).toEqual('screen1-multi-header-main-focus');
+
+      await page.keyboard.press('ArrowLeft');
+      result = await page.evaluate(() => document.activeElement.id);
+
+      expect(result).toEqual('screen1-multi-header-left-focus');
+      expect(result).not.toEqual('screen1-multi-screen-focus');
+      expect(result).not.toEqual('screen2-multi-screen-focus');
+    });
+  });
+
   // describe('Visibility Handling - Candidate Filtering', () => {
   //   it('should skip candidates with display none', async () => {
   //     await page.goto(`${testPath}/visibility.html`);

@@ -38,10 +38,36 @@ Experimental.
 
 ### Screen-level scoping with `lrud-screen-<name>`
 
-- If the currently focused element is inside an element whose id starts with `lrud-screen-`, LRUD uses that screen as the effective scope.
+- If the currently focused element is inside an element whose id starts with `lrud-screen-`, LRUD applies screen/header-aware scope resolution.
 - This is intended for app-driven screen boundaries (for example React Navigation style screen containers).
-- This convention must be applied by the App layer by assigning ids such as `lrud-screen-home`, `lrud-screen-details`, and so on.
+- This convention must be applied by the App layer by assigning ids such as `lrud-screen-home`, `lrud-screen-settings`, and their relative headers if defined separately such as `lrud-screen-home-header-left`.
 - Smaller scope means fewer focus candidates to evaluate, which improves next-focus computation performance.
+
+#### ID conventions used by the resolver
+
+- Screen root: `id="lrud-screen-<screenName>"`
+  - Examples: `lrud-screen-home`, `lrud-screen-details`.
+- Header root: `id="lrud-screen-<screenName>-<headerName>"`
+  - Examples: `lrud-screen-home-header`, `lrud-screen-home-header-left`.
+- Parsing rule in the resolver:
+  - First `-` after the `lrud-screen-` prefix separates screen vs header.
+  - No `-` after prefix => treated as a screen id.
+  - With `-` => treated as a header id that belongs to the parsed screen.
+
+#### Direction-aware scoping behavior
+
+When origin is inside a screen (`SCREEN` type):
+
+- `up`: include screen + headers for that screen.
+  - Internally, headers are queried by prefix `"${screen}-"`.
+- `left`, `right`, `down`: restrict to the screen only.
+
+When origin is inside a header (`HEADER` type):
+
+- `down`: include owning screen (if found) + sibling headers matching the current header prefix query.
+- `left`, `right`, `up`: keep navigation in header scope (closest header + matching header siblings).
+
+This enables header <-> screen transitions only on vertical intent (`up` from screen, `down` from header), while reducing accidental cross-scope jumps for horizontal moves.
 
 ### Virtualized list container marker with `tabindex="-999"`
 
@@ -55,7 +81,10 @@ Experimental.
   - `should scope navigation to the current screen container` (`test/layouts/screen-scope.html`)
   - `should scope navigation to blocked container within a screen` (`test/layouts/screen-block-exit-right.html`)
   - `should block right exit when parent container blocks it even if child allows it` (`test/layouts/nested-parent-blocks-right.html`)
-- There is currently no dedicated fixture in this repo that explicitly asserts `tabindex="-999"` (virtualized-list marker) behavior in isolation.
+- `test/lrud-directional.test.js` includes directional screen/header scoping fixtures:
+  - `should keep left navigation scoped to a single header and not enter screen content` (`test/directional-layouts/screen-scope-header-single.html`)
+  - `should move between same-screen left/right headers and not jump into screen content` (`test/directional-layouts/screen-scope-header-multiple.html`)
+- There is still no dedicated fixture in this repo that explicitly asserts `tabindex="-999"` (virtualized-list marker) behavior in isolation.
 
 ### Other TV-specific test coverage in this repo
 
@@ -68,6 +97,7 @@ Experimental.
 - `test/lrud-directional.test.js` covers directional selection behavior that impacts TV feel and predictability:
   - Axis overlap and alignment priority (`test/directional-layouts/axis-overlap-priority.html`, `test/directional-layouts/alignment-priority.html`)
   - Overlap threshold handling (`test/directional-layouts/overlap-weighting.html`)
+  - Screen/header scope boundaries for directional moves (`test/directional-layouts/screen-scope-header-single.html`, `test/directional-layouts/screen-scope-header-multiple.html`)
   - Complex directional and edge-case candidate filtering (`test/directional-layouts/complex-direction.html`, `test/directional-layouts/edge-cases.html`, `test/directional-layouts/directional-validation.html`)
 
 ### Focus memory
