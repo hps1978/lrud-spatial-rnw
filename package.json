@@ -1,7 +1,7 @@
 {
-  "name": "@bbc/tv-lrud-spatial",
+  "name": "@hps1978/tv-lrud-spatial",
   "version": "0.0.16",
-  "description": "Spatial navigation library",
+  "description": "Spatial navigation library for react-native-web-tv (forked from @bbc/tv-lrud-spatial)",
   "main": "lib/lrud.min.js",
   "module": "lib/lrud.esm.js",
   "exports": {
@@ -30,15 +30,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bbc/lrud-spatial.git"
+    "url": "git+https://github.com/hps1978/tv-lrud-spatial.git"
   },
   "keywords": [],
-  "author": "BBC",
+  "author": "Harpreet Singh <hps1978@users.noreply.github.com>",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/bbc/lrud-spatial/issues"
+    "url": "https://github.com/hps1978/tv-lrud-spatial/issues"
   },
-  "homepage": "https://github.com/bbc/lrud-spatial#readme",
+  "homepage": "https://github.com/hps1978/tv-lrud-spatial#readme",
   "devDependencies": {
     "esbuild": "^0.25.10",
     "eslint": "^8.27.0",

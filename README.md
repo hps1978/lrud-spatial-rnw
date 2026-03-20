@@ -1,8 +1,18 @@
-<p align="center">
-  <img src=".github/lrud.svg" alt="LRUD Spatial - React Native Web TV"/>
-</p>
+<!--
+  This is a community-maintained fork of @bbc/tv-lrud-spatial.
+  Copyright (C) 2026 Harpreet Singh. Portions copyright BBC.
+  Licensed under the Apache License, Version 2.0. See LICENSE for details.
+-->
 
-# LRUD Spatial - React Native Web TV Edition
+# LRUD Spatial - React Native Web TV Edition (Community Fork)
+
+**Thank you to the original BBC maintainers and contributors for providing a great foundation for this work.**
+
+**This is a fork of the BBC's [@bbc/tv-lrud-spatial](https://github.com/bbc/lrud-spatial) project, maintained by Harpreet Singh.**
+
+- Original author: BBC
+- Fork maintainer: Harpreet Singh <hps1978@users.noreply.github.com>
+- License: Apache-2.0 (see LICENSE)
 
 This fork documents and implements spatial navigation behavior aligned with React Native Web TV focus semantics. 
 
