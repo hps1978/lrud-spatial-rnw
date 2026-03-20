@@ -1,6 +1,6 @@
 {
   "name": "@hps1978/tv-lrud-spatial",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "description": "Spatial navigation library for react-native-web-tv (forked from @bbc/tv-lrud-spatial)",
   "main": "lib/lrud.min.js",
   "module": "lib/lrud.esm.js",
